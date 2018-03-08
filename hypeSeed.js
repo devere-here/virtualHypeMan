@@ -3,17 +3,18 @@ const db = require('./server/db');
 
 
 
-function CreatePhrase(keyword, phrase){
+function CreatePhrase(keyword, phrase, videoUrl){
   this.keyWord = keyword;
   this.motivationalWords = phrase;
+  this.videoUrl = videoUrl;
 }
 
 let phraseArr = [];
-phraseArr.push(new CreatePhrase('happy', 'Good'));
-phraseArr.push(new CreatePhrase('sad', 'Stop being sad'));
-phraseArr.push(new CreatePhrase('angry', 'Stop being angry'));
-phraseArr.push(new CreatePhrase('nervous', 'Stop being nervous'));
-phraseArr.push(new CreatePhrase('tired', 'Stop being tired'));
+phraseArr.push(new CreatePhrase('happy', 'Good', 'https://www.youtube.com/watch?v=1Bix44C1EzY'));
+phraseArr.push(new CreatePhrase('sad', 'Stop being sad', 'https://www.youtube.com/watch?v=rmL1D_aWTAY'));
+phraseArr.push(new CreatePhrase('angry', 'Stop being angry', 'https://www.youtube.com/watch?v=98h3I58amR8'));
+phraseArr.push(new CreatePhrase('nervous', 'Stop being nervous', 'https://www.youtube.com/watch?v=hew3z2FIbME'));
+phraseArr.push(new CreatePhrase('tired', 'Stop being tired', 'https://www.youtube.com/watch?v=KxGRhd_iWuE'));
 
 
 

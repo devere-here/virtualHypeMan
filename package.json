@@ -44,6 +44,7 @@
     "redux": "^3.6.0",
     "redux-logger": "^2.8.1",
     "redux-thunk": "^2.2.0",
+    "say": "^0.14.0",
     "sequelize": "^4.3.1",
     "socket.io": "^2.0.3",
     "three": "^0.90.0"

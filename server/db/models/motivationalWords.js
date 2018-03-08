@@ -3,11 +3,14 @@ const db = require('../db');
 
 const MotivationalWords = db.define('motivationalWords', {
   keyWord: {
-    type: Sequelize.STRING,
+    type: Sequelize.STRING
   },
   motivationalWords: {
-    type: Sequelize.TEXT,
+    type: Sequelize.TEXT
   },
+  videoUrl: {
+    type: Sequelize.STRING
+  }
 
 });
 

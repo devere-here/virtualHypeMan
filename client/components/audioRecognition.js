@@ -20,6 +20,7 @@ class AudioRecognition extends Component{
     this.props.loadPhraseData();
     this.feelings = ['happy', 'sad', 'tired', 'nervous'];
     this.clickHandler = this.clickHandler.bind(this);
+    this.toggleSetting = this.toggleSetting.bind(this);
     this.counter = 0;
     this.response = '';
 
@@ -30,6 +31,8 @@ class AudioRecognition extends Component{
     this.props.resetTranscript();
 
   }
+
+  toggleSetting(){}
 
   componentDidMount(){
     console.log('in componentDidMount');
@@ -52,6 +55,9 @@ class AudioRecognition extends Component{
       if (this.found === false && transcript.includes(feeling)){
         console.log('this.props.motivationalWords[feeling]', this.props.motivationalWords[feeling]);
         this.response = this.props.motivationalWords[feeling];
+        //var msg = new SpeechSynthesisUtterance('Hello World');
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
+        console.log('Text has been spoken.');
         this.found = true;
       }
     })
@@ -62,6 +68,7 @@ class AudioRecognition extends Component{
 
     return (
       <div>
+        <button onClick={this.toggleSetting}>Toggle</button>
         <button onClick={this.clickHandler}>Reset</button>
         <span>{transcript}</span>
         { this.found ? <h1>{this.response}</h1> : null}
