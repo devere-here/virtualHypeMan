@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import {connect} from 'react-redux'
-import {logout} from '../store'
 import SpeechRecognition from 'react-speech-recognition'
+import { fetchPhrases } from '../store'
 
 const propTypes = {
   // Props injected by SpeechRecognition
@@ -14,10 +14,14 @@ const propTypes = {
 
 
 class AudioRecognition extends Component{
-  constructor(){
-    super();
+  constructor(props){
+    super(props);
+    console.log('this.props', this.props);
+    this.props.loadPhraseData();
     this.feelings = ['happy', 'sad', 'tired', 'nervous'];
     this.clickHandler = this.clickHandler.bind(this);
+    this.counter = 0;
+    this.response = '';
 
   }
 
@@ -32,21 +36,22 @@ class AudioRecognition extends Component{
     this.found = false;
   }
 
-  componentWillReceiveProps(){
-    console.log('in componentWillReceiveProps');
-  }
-
   render() {
-    const { transcript, resetTranscript, browserSupportsSpeechRecognition } = this.props;
+    this.counter++;
+
+    const { transcript, browserSupportsSpeechRecognition } = this.props;
+    console.log('this.props', this.props);
 
     console.log('transcript', transcript);
 
     console.log('this.found', this.found);
 
 
+
     this.feelings.forEach((feeling) => {
       if (this.found === false && transcript.includes(feeling)){
-        console.log(feeling);
+        console.log('this.props.motivationalWords[feeling]', this.props.motivationalWords[feeling]);
+        this.response = this.props.motivationalWords[feeling];
         this.found = true;
       }
     })
@@ -59,6 +64,7 @@ class AudioRecognition extends Component{
       <div>
         <button onClick={this.clickHandler}>Reset</button>
         <span>{transcript}</span>
+        { this.found ? <h1>{this.response}</h1> : null}
       </div>
     )
   }
@@ -68,7 +74,25 @@ class AudioRecognition extends Component{
 
 AudioRecognition.propTypes = propTypes
 
-export default SpeechRecognition(AudioRecognition)
+/**
+ * CONTAINER
+ */
+const mapState = ({ motivationalWords }) => {
+  return {
+    motivationalWords
+  }
+}
+
+
+const mapDispatch = dispatch => {
+  return {
+    loadPhraseData () {
+      dispatch(fetchPhrases(dispatch))
+    }
+  }
+}
+
+export default connect(mapState, mapDispatch)(SpeechRecognition(AudioRecognition))
 
 
 // /**
@@ -80,13 +104,7 @@ export default SpeechRecognition(AudioRecognition)
 //   }
 // }
 
-// const mapDispatch = dispatch => {
-//   return {
-//     handleClick() {
-//       dispatch(logout())
-//     }
-//   }
-// }
+
 
 // export default connect(mapState, mapDispatch)(Navbar)
 
