@@ -3,6 +3,10 @@ import PropTypes from 'prop-types'
 import {connect} from 'react-redux'
 import SpeechRecognition from 'react-speech-recognition'
 import { fetchPhrases } from '../store'
+import Audio from 'react-audioplayer';
+import { Player } from 'video-react';
+
+
 
 const propTypes = {
   // Props injected by SpeechRecognition
@@ -16,13 +20,13 @@ const propTypes = {
 class AudioRecognition extends Component{
   constructor(props){
     super(props);
-    console.log('this.props', this.props);
+
     this.props.loadPhraseData();
     this.feelings = ['happy', 'sad', 'tired', 'nervous'];
     this.clickHandler = this.clickHandler.bind(this);
     this.toggleSetting = this.toggleSetting.bind(this);
-    this.counter = 0;
     this.response = '';
+    this.videoUrl = '';
 
   }
 
@@ -32,7 +36,9 @@ class AudioRecognition extends Component{
 
   }
 
-  toggleSetting(){}
+  toggleSetting(){
+    this.video = !this.video;
+  }
 
   componentDidMount(){
     console.log('in componentDidMount');
@@ -43,22 +49,14 @@ class AudioRecognition extends Component{
     this.counter++;
 
     const { transcript, browserSupportsSpeechRecognition } = this.props;
-    console.log('this.props', this.props);
-
-    console.log('transcript', transcript);
-
-    console.log('this.found', this.found);
-
-
 
     this.feelings.forEach((feeling) => {
       if (this.found === false && transcript.includes(feeling)){
-        console.log('this.props.motivationalWords[feeling]', this.props.motivationalWords[feeling]);
-        this.response = this.props.motivationalWords[feeling];
-        //var msg = new SpeechSynthesisUtterance('Hello World');
+        this.response = this.props.motivationalWords[feeling].response;
         window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
-        console.log('Text has been spoken.');
+        this.videoUrl = this.props.motivationalWords[feeling].videoUrl;
         this.found = true;
+
       }
     })
 
@@ -68,15 +66,19 @@ class AudioRecognition extends Component{
 
     return (
       <div>
-        <button onClick={this.toggleSetting}>Toggle</button>
         <button onClick={this.clickHandler}>Reset</button>
         <span>{transcript}</span>
-        { this.found ? <h1>{this.response}</h1> : null}
+        { !this.found
+          ? null
+          : (<div><h1>{this.response}</h1>
+            <iframe width="560" height="315" src={this.videoUrl} frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>)
+        }
       </div>
     )
   }
 
 }
+
 
 
 AudioRecognition.propTypes = propTypes
@@ -131,4 +133,8 @@ export default connect(mapState, mapDispatch)(SpeechRecognition(AudioRecognition
 //     this.recognition.lang = 'en-US';
 //     this.recognition.interimResults = false;
 //     this.recognition.maxAlternatives = 1;
+
+
+
+//https://drive.google.com/uc?export=download&id=1GKL_Jax3_f4dVMNKM0I2qcTy3E0Crf46
 

@@ -11,10 +11,12 @@ function CreatePhrase(keyword, phrase, videoUrl){
 
 let phraseArr = [];
 phraseArr.push(new CreatePhrase('happy', 'Good', 'https://www.youtube.com/watch?v=1Bix44C1EzY'));
-phraseArr.push(new CreatePhrase('sad', 'Stop being sad', 'https://www.youtube.com/watch?v=rmL1D_aWTAY'));
-phraseArr.push(new CreatePhrase('angry', 'Stop being angry', 'https://www.youtube.com/watch?v=98h3I58amR8'));
-phraseArr.push(new CreatePhrase('nervous', 'Stop being nervous', 'https://www.youtube.com/watch?v=hew3z2FIbME'));
-phraseArr.push(new CreatePhrase('tired', 'Stop being tired', 'https://www.youtube.com/watch?v=KxGRhd_iWuE'));
+phraseArr.push(new CreatePhrase('sad', 'Stop being sad', 'https://www.youtube.com/embed/rmL1D_aWTAY'));
+phraseArr.push(new CreatePhrase('angry', 'Stop being angry', 'https://www.youtube.com/embed/pQChpBgqEg8'));
+phraseArr.push(new CreatePhrase('nervous', 'Stop being nervous', 'https://www.youtube.com/embed/WWloIAQpMcQ'));
+phraseArr.push(new CreatePhrase('tired', 'Stop being tired', 'https://www.youtube.com/embed/KxGRhd_iWuE'));
+
+
 
 
 

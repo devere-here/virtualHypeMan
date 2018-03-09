@@ -23,7 +23,11 @@ export const fetchPhrases = () => async (dispatch) => {
     const phrases = await axios.get('/api/phrases');
     let phraseObj = {};
     phrases.data.forEach((phrase) => {
-      phraseObj[phrase.keyWord] = phrase.motivationalWords;
+      phraseObj[phrase.keyWord] = {
+        response: phrase.motivationalWords,
+        videoUrl: phrase.videoUrl
+      };
+
     })
     dispatch(getPhrases(phraseObj));
     return phrases
