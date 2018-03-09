@@ -9,39 +9,33 @@ import axios from 'axios';
 
 
 const propTypes = {
-  // Props injected by SpeechRecognition
   transcript: PropTypes.string,
   resetTranscript: PropTypes.func,
   browserSupportsSpeechRecognition: PropTypes.bool
-
 }
-
 
 
 class AudioRecognition extends Component{
   constructor(props){
     super(props);
 
+    this.getGeoLocation();
     this.props.loadPhraseData();
     this.feelings = ['happy', 'sad', 'tired', 'nervous'];
     this.clickHandler = this.clickHandler.bind(this);
-    this.toggleSetting = this.toggleSetting.bind(this);
     this.response = '';
     this.videoUrl = '';
-    this.getGeoLocation();
     this.weather = '';
-
+    this.listening = false;
+    this.typeOfResponse = '';
+    this.found = false;
 
   }
 
 
  async getGeoLocation(){
     let weatherUrl;
-    //debugger;
     if (navigator.geolocation){
-      //Geolocation to determine user's position
-      //debugger;
-      console.log('in navigator.geolocation');
 
       weatherUrl = await navigator.geolocation.getCurrentPosition((position) => {
         console.log('coords', position.coords.latitude, position.coords.longitude);
@@ -52,81 +46,99 @@ class AudioRecognition extends Component{
           this.weather = weatherData;
         })
       })
-      // let weatherData = await axios.get(weatherUrl)
-      // console.log('weatherData', weatherData);
     }
+  }
+
+  renderSwitch = (type) => {
+    console.log('in the render switch type is', type);
+    console.log('this.typeOfResponse', this.typeOfResponse);
+
+    switch (type){
+      case 'feeling':
+        return (<div><h1>{this.response}</h1>
+          <iframe width="560" height="315" src={`${this.videoUrl}?autoplay=1`} allow="autoplay; encrypted-media" allowFullScreen /></div>);
+      case 'weather':
+          return (<div><h1>{this.response}</h1>
+            <img width="560" height="315" src={this.props.weatherImages[this.weather.data.weather[0].main]} /></div>);
+      default:
+              return (<h1>Hello Steven</h1>)
+    }
+
   }
 
 
   clickHandler(){
+    this.listening = !this.listening;
     this.found = false;
     this.props.resetTranscript();
+    this.props.listening ? this.props.stopListening() : this.props.startListening();
+
 
   }
 
-  toggleSetting(){
-    this.video = !this.video;
+  onThankYou(){
+    this.transcript = '';
+    this.props.stopListening();
+  }
+
+  heyYou(){
+
   }
 
   componentDidMount(){
     console.log('in componentDidMount');
-    this.found = false;
   }
 
   render() {
     this.counter++;
 
-    const { transcript, browserSupportsSpeechRecognition } = this.props;
+    const { transcript , stopListening, browserSupportsSpeechRecognition, listening } = this.props;
 
     console.log('transcript ', transcript);
-
     let transcriptArr = transcript.split(' ');
+    let prevWord = '';
 
     for (let word of transcriptArr){
-      if (this.found === false){
+      if (listening === true){
         if (this.feelings.includes(word)){
           this.response = this.props.motivationalWords[word].response;
-          window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
           this.videoUrl = this.props.motivationalWords[word].videoUrl;
+          window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
+          stopListening();
           this.found = true;
+          this.typeOfResponse = 'feeling';
           break;
-        } else if (word === 'temperature'){
-          console.log('this.weather', this.weather);
+        } else if (word === 'temperature' || word === 'weather'){
           if (this.weather){
             let fahrenheit = this.weather.data.main.temp * 1.8 + 32;
-            fahrenheit = Math.round(fahrenheit);
-            fahrenheit.toString();
-            window.speechSynthesis.speak(new SpeechSynthesisUtterance('The temperature is ' + fahrenheit + 'degrees fahrenheit'));
-            this.found = true;
-          } else{
-            window.speechSynthesis.speak(new SpeechSynthesisUtterance('The temperature is currently unavailiable'));
-          }
-
-        } else if (word === 'weather'){
-          if (this.weather){
-            console.log('this.weather.maindhhddhdhdhdh', this.weather.data.weather[0].main);
-            let weather = this.weather.data.weather[0].main;
-            window.speechSynthesis.speak(new SpeechSynthesisUtterance('The weather is ' + weather));
-            this.found = true;
+            let percipitation = this.weather.data.weather[0].main;
+            if (percipitation === 'Clear') percipitation = 'Clear Skies';
+            fahrenheit = Math.round(fahrenheit).toString();
+            this.response = `It is ${fahrenheit} degrees fahrenheit outside with ${percipitation}`;
+            window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
+            stopListening();
+            this.typeOfResponse = 'weather';
           } else {
-            window.speechSynthesis.speak(new SpeechSynthesisUtterance('The weather is currently unavailiable'));
+            window.speechSynthesis.speak(new SpeechSynthesisUtterance('The temperature and weather is currently unavailiable'));
           }
+          this.found = true;
 
+        } else if (word === 'great' && prevWord === 'you\'re'){
+
+          window.speechSynthesis.speak(new SpeechSynthesisUtterance('Thank You'));
+          stopListening();
+          this.found = true;
+          break;
+
+        } else if (word === 'hello'){
+          window.speechSynthesis.speak(new SpeechSynthesisUtterance('Hello Steven'));
+          stopListening();
+          this.found = true;
         }
       }
 
+      prevWord = word;
     }
-
-
-    // this.feelings.forEach((feeling) => {
-    //   if (this.found === false && transcript.includes(feeling)){
-    //     this.response = this.props.motivationalWords[feeling].response;
-    //     window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
-    //     this.videoUrl = this.props.motivationalWords[feeling].videoUrl;
-    //     this.found = true;
-
-    //   }
-    // })
 
     if (!browserSupportsSpeechRecognition) {
       return null
@@ -134,12 +146,11 @@ class AudioRecognition extends Component{
 
     return (
       <div>
-        <button onClick={this.clickHandler}>Reset</button>
+        <button onClick={this.clickHandler}>{listening ? 'Stop' : 'Start'}</button>
         <span>{transcript}</span>
         { !this.found
           ? null
-          : (<div><h1>{this.response}</h1>
-            <iframe width="560" height="315" src={`${this.videoUrl}?autoplay=1`} allow="autoplay; encrypted-media" allowFullScreen /></div>)
+          : (<div>{this.renderSwitch(this.typeOfResponse)}</div>)
         }
       </div>
     )
@@ -155,7 +166,15 @@ AudioRecognition.propTypes = propTypes
  */
 const mapState = ({ motivationalWords }) => {
   return {
-    motivationalWords
+    motivationalWords,
+    weatherImages: {
+      Clear: 'https://formingthethread.files.wordpress.com/2013/04/clearday.jpg',
+      Clouds: 'https://vmcdn.ca/f/files/sudbury/140816_weather.jpg;w=630',
+      Rain: 'https://pennalumniblog.files.wordpress.com/2012/01/rainy_day.jpg',
+      Snow: 'https://static01.nyt.com/packages/images/multimedia/bundles/projects/2012/AvalancheDeploy/lure-intro.jpg',
+      Mist: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOYEFBd9-513q7RB3Af9b_VNk1y2_J5KcFZzXQLLS8virDIUdJ',
+      ThunderStorms: 'https://www.flyingmag.com/sites/flyingmag.com/files/styles/1000_1x_/public/images/2017/06/everything-explained-june.jpg?itok=UsjdV7uz&fc=50,50'
+    }
   }
 }
 
@@ -168,7 +187,12 @@ const mapDispatch = dispatch => {
   }
 }
 
-export default connect(mapState, mapDispatch)(SpeechRecognition(AudioRecognition))
+const options = {
+  autoStart: false
+}
+
+
+export default connect(mapState, mapDispatch)(SpeechRecognition(options)(AudioRecognition))
 
 
 // /**
@@ -182,24 +206,3 @@ export default connect(mapState, mapDispatch)(SpeechRecognition(AudioRecognition
 
 
 // export default connect(mapState, mapDispatch)(Navbar)
-
-
-// this.SpeechRecognition = window.SpeechRecognition || webkitSpeechRecognition
-//     this.SpeechGrammarList = window.SpeechGrammarList || webkitSpeechGrammarList
-//     this.SpeechRecognitionEvent = window.SpeechRecognitionEvent || webkitSpeechRecognitionEvent
-
-//     this.feelings = ['happy', 'sad'];
-//     this.grammar = '#JSGF V1.0; grammar colors; public <feeling> = ' + this.feelings.join(' | ') + ' ;'
-
-//     this.recognition = new SpeechRecognition();
-//     this.speechRecognitionList = new SpeechGrammarList();
-//     this.speechRecognitionList.addFromString(this.grammar, 1);
-//     this.recognition.grammars = speechRecognitionList;
-//     //recognition.continuous = false;
-//     this.recognition.lang = 'en-US';
-//     this.recognition.interimResults = false;
-//     this.recognition.maxAlternatives = 1;
-
-
-//https://drive.google.com/uc?export=download&id=1GKL_Jax3_f4dVMNKM0I2qcTy3E0Crf46
-
