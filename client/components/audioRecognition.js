@@ -2,12 +2,10 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import {connect} from 'react-redux'
 import SpeechRecognition from 'react-speech-recognition'
-import { fetchPhrases } from '../store'
+import { fetchPhrases, fetchDefinition } from '../store'
 import Audio from 'react-audioplayer';
 import { Player } from 'video-react';
 import axios from 'axios';
-import DefintionRecognition from './defintionRecognition';
-import { fetchDefinition } from '../store';
 
 
 const propTypes = {
@@ -16,20 +14,9 @@ const propTypes = {
   browserSupportsSpeechRecognition: PropTypes.bool
 }
 
-const dictionaryApiConfig = {
-  headers: {
-    Accept: 'application/json',
-    app_id: 'eb6c4545',
-    app_key: '3f6fbf950a841c0ade489f3f31e81e2c'
-  }
-}
-
 const owlBotConfig = {
   headers: {'Access-Control-Allow-Origin': '*'},
-  proxy: {}
 }
-
-console.log('owlBotConfig', owlBotConfig);
 
 
 class AudioRecognition extends Component{
@@ -47,6 +34,20 @@ class AudioRecognition extends Component{
     this.typeOfResponse = '';
     this.found = false;
     this.definitionHandler = this.definitionHandler.bind(this);
+    this.dictionaryUrl = '';
+    this.finishedAsync = false;
+
+  }
+
+  componentWillReceiveProps(nextProps){
+
+    console.log('props.definition', this.props);
+    console.log('nextProps.definition', nextProps);
+    console.log('Object.keys(nextProps).length', Object.keys(nextProps).length);
+    if (Object.keys(nextProps).length !== 0 && this.props.definition !== nextProps.definition){
+      console.log(' in componentWillReceiveProps if statement');
+      this.finishedAsync = true;
+    }
 
   }
 
@@ -56,11 +57,9 @@ class AudioRecognition extends Component{
     if (navigator.geolocation){
 
       weatherUrl = await navigator.geolocation.getCurrentPosition((position) => {
-        console.log('coords', position.coords.latitude, position.coords.longitude);
         weatherUrl = `https://fcc-weather-api.glitch.me/api/current?lat=${position.coords.latitude}&lon=${position.coords.longitude}`;
         axios.get(weatherUrl)
         .then((weatherData) => {
-          console.log('weatherData', weatherData);
           this.weather = weatherData;
         })
       })
@@ -68,8 +67,6 @@ class AudioRecognition extends Component{
   }
 
   renderSwitch = (type) => {
-    console.log('in the render switch type is', type);
-    console.log('this.typeOfResponse', this.typeOfResponse);
 
     switch (type){
       case 'feeling':
@@ -86,8 +83,9 @@ class AudioRecognition extends Component{
                 {!this.finishedAsync
                   ? <p>Waiting...</p>
                   : (<div>
-                      {window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response))}
-                      <p>{this.response}</p>
+                      {window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.props.definition.text))}
+                      <p>{this.props.definition.text}</p>
+                      <img width="560" height="315" src={this.props.definition.image} />
                     </div>)
                   }
               </div>
@@ -102,6 +100,7 @@ class AudioRecognition extends Component{
   clickHandler(){
     this.listening = !this.listening;
     this.found = false;
+    this.finishedAsync = false;
     this.props.resetTranscript();
     this.props.listening ? this.props.stopListening() : this.props.startListening();
 
@@ -114,32 +113,11 @@ class AudioRecognition extends Component{
   }
 
   async definitionHandler(word){
-    console.log('in definition handler if block');
     this.typeOfResponse = 'definition';
-    //stopListening();
     this.found = true;
-    console.log('about to define ', word);
 
-    //this.props.loadDefinition(word);
-    //let obj = {apiUrl: `https://owlbot.info/api/v2/dictionary/${word}/?format=json`};
-    //let obj = {apiUrl: `https://owlbot.info/api/v2/dictionary/${word}/?format=json`};
+    await this.props.loadDefinition(word)
 
-
-    let value = await axios.post('api/apiRequests', {word});
-      this.finishedAsync = true;
-      console.log('returned this value', value);
-      //console.log('value is ', value.data[0].definition);
-      this.response = `${word}, ${value.data[0].definition}`;
-      window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
-
-
-    //let value = await axios.get(`https://owlbot.info/api/v2/dictionary/${word}/?format=json`, owlBotConfig)
-    //console.log('value is, ', value);
-
-  }
-
-  componentDidMount(){
-    console.log('in componentDidMount');
   }
 
   render() {
@@ -149,6 +127,7 @@ class AudioRecognition extends Component{
     console.log('transcript ', transcript);
     let transcriptArr = transcript.split(' ');
     let prevWord = '';
+    let prevPrevWord = '';
 
     for (let word of transcriptArr){
       if (listening === true){
@@ -187,20 +166,14 @@ class AudioRecognition extends Component{
           window.speechSynthesis.speak(new SpeechSynthesisUtterance('Hello Steven'));
           stopListening();
           this.found = true;
-        } else if (prevWord === 'define' || prevWord === 'Define'){
-          console.log('in right if statement');
-          this.definitionHandler(word);
-          //stopListening();
-
-          // console.log('in definition if block');
-          // this.typeOfResponse = 'definition';
-
+        } else if ((prevPrevWord === 'define' || prevPrevWord === 'Define') && word === 'please'){
+          this.definitionHandler(prevWord);
           stopListening();
 
-          // this.found = true;
         }
       }
 
+      prevPrevWord = prevWord;
       prevWord = word;
     }
 
@@ -228,9 +201,11 @@ AudioRecognition.propTypes = propTypes
 /**
  * CONTAINER
  */
-const mapState = ({ motivationalWords }) => {
+const mapState = (state) => {
+  console.log('state is', state);
   return {
-    motivationalWords,
+    motivationalWords: state.motivationalWords,
+    definition: state.dictionary,
     weatherImages: {
       Clear: 'https://formingthethread.files.wordpress.com/2013/04/clearday.jpg',
       Clouds: 'https://vmcdn.ca/f/files/sudbury/140816_weather.jpg;w=630',
@@ -273,3 +248,16 @@ export default connect(mapState, mapDispatch)(SpeechRecognition(options)(AudioRe
 
 
 // export default connect(mapState, mapDispatch)(Navbar)
+
+
+
+// console.log('about to change finishedAsync');
+    // this.finishedAsync = true;
+
+    // let value = await axios.post('api/apiRequests', {word});
+    //   console.log('returned this value', value);
+    //   this.response = `${word}, ${value.data[0].definition}`;
+    //   this.dictionaryUrl = value.data[0].image;
+    //   window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
+    //   console.log('about the change finishedAsync');
+    //   this.props.finishedAsync = true;

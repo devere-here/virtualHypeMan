@@ -14,24 +14,24 @@ const defaultDefinition = {}
 /**
  * ACTION CREATORS
  */
-const getPhrases = (definition) => ({type: GET_DEFINITION, definition})
+const getDefinition = (definition) => ({type: GET_DEFINITION, definition})
 
 
 //THUNKS
 export const fetchDefinition = (word) => async (dispatch) => {
   try {
-    const phrases = await axios.get(`https://owlbot.info/api/v2/dictionary/${word}/?format=json`);
-    console.log('phrases', phrases);
-    // let phraseObj = {};
-    // phrases.data.forEach((phrase) => {
-    //   phraseObj[phrase.keyWord] = {
-    //     response: phrase.motivationalWords,
-    //     videoUrl: phrase.videoUrl
-    //   };
 
-    // })
-    // dispatch(getPhrases(phraseObj));
-    // return phrases
+    let value = await axios.post('api/apiRequests', {word});
+    console.log('returned this value', value);
+    let obj = {
+      text: `${word}, ${value.data[0].definition}`,
+      image: value.data[0].image
+    }
+
+    console.log('this will be definition', obj);
+
+    dispatch(getDefinition(obj));
+
   }
   catch (err) {
     console.log(err)
@@ -45,6 +45,7 @@ export const fetchDefinition = (word) => async (dispatch) => {
 export default function (state = defaultDefinition, action) {
   switch (action.type) {
     case GET_DEFINITION:
+      console.log('in reducer action.definition ', action.definition);
       return action.definition
     default:
       return state

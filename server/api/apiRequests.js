@@ -23,9 +23,9 @@ router.post('/', asyncHandler(async (req, res, next) => {
   client.search().images().withPage(1).withPageSize(1).withPhrase(`${req.body.word}`)
       .execute(function(err, response) {
           if (err) throw err
-          console.log('response is', response);
+          console.log('response is .images', response.images);
           value.data[0].image = response.images[0].display_sizes[0].uri; //.images[0].displaySizes[0].uri;
-          console.log(JSON.stringify(response));
+          //console.log(JSON.stringify(response));
           //value.data.image = response;
           console.log('value.data[0]', value.data[0]);
           res.json(value.data);
