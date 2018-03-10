@@ -25,7 +25,7 @@ class AudioRecognition extends Component{
 
     this.getGeoLocation();
     this.props.loadPhraseData();
-    this.feelings = ['happy', 'sad', 'tired', 'nervous'];
+    this.feelings = ['happy', 'sad', 'tired', 'nervous', 'angry'];
     this.clickHandler = this.clickHandler.bind(this);
     this.response = '';
     this.videoUrl = '';

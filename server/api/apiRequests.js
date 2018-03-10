@@ -5,7 +5,6 @@ const axios = require('axios');
 const ImageApi = require('gettyimages-api');
 
 
-var imageCreds = { apiKey: 'eh9kygmyxjbdw8z5md3xj8un', apiSecret: 'b4U3V7uMd8cvRYNXe4rFrzuAVqGrZXvHN6WwfTCu8x4Fw', username: 'stevendeverehere', password: '0Sun+Cat1' };
 
 
 module.exports = router;
