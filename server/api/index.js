@@ -1,7 +1,8 @@
 const router = require('express').Router()
 module.exports = router
 
-router.use('/phrases', require('./motivationalWords'))
+router.use('/phrases', require('./motivationalWords'));
+router.use('/apiRequests', require('./apiRequests'));
 
 router.use((req, res, next) => {
   const error = new Error('Not Found')

@@ -6,6 +6,8 @@ import { fetchPhrases } from '../store'
 import Audio from 'react-audioplayer';
 import { Player } from 'video-react';
 import axios from 'axios';
+import DefintionRecognition from './defintionRecognition';
+import { fetchDefinition } from '../store';
 
 
 const propTypes = {
@@ -13,6 +15,21 @@ const propTypes = {
   resetTranscript: PropTypes.func,
   browserSupportsSpeechRecognition: PropTypes.bool
 }
+
+const dictionaryApiConfig = {
+  headers: {
+    Accept: 'application/json',
+    app_id: 'eb6c4545',
+    app_key: '3f6fbf950a841c0ade489f3f31e81e2c'
+  }
+}
+
+const owlBotConfig = {
+  headers: {'Access-Control-Allow-Origin': '*'},
+  proxy: {}
+}
+
+console.log('owlBotConfig', owlBotConfig);
 
 
 class AudioRecognition extends Component{
@@ -29,6 +46,7 @@ class AudioRecognition extends Component{
     this.listening = false;
     this.typeOfResponse = '';
     this.found = false;
+    this.definitionHandler = this.definitionHandler.bind(this);
 
   }
 
@@ -60,6 +78,20 @@ class AudioRecognition extends Component{
       case 'weather':
           return (<div><h1>{this.response}</h1>
             <img width="560" height="315" src={this.props.weatherImages[this.weather.data.weather[0].main]} /></div>);
+      case 'definition':
+      this.transcript = '';
+            return (
+              <div>
+                <h1>definition</h1>
+                {!this.finishedAsync
+                  ? <p>Waiting...</p>
+                  : (<div>
+                      {window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response))}
+                      <p>{this.response}</p>
+                    </div>)
+                  }
+              </div>
+            )
       default:
               return (<h1>Hello Steven</h1>)
     }
@@ -81,7 +113,28 @@ class AudioRecognition extends Component{
     this.props.stopListening();
   }
 
-  heyYou(){
+  async definitionHandler(word){
+    console.log('in definition handler if block');
+    this.typeOfResponse = 'definition';
+    //stopListening();
+    this.found = true;
+    console.log('about to define ', word);
+
+    //this.props.loadDefinition(word);
+    //let obj = {apiUrl: `https://owlbot.info/api/v2/dictionary/${word}/?format=json`};
+    //let obj = {apiUrl: `https://owlbot.info/api/v2/dictionary/${word}/?format=json`};
+
+
+    let value = await axios.post('api/apiRequests', {word});
+      this.finishedAsync = true;
+      console.log('returned this value', value);
+      //console.log('value is ', value.data[0].definition);
+      this.response = `${word}, ${value.data[0].definition}`;
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
+
+
+    //let value = await axios.get(`https://owlbot.info/api/v2/dictionary/${word}/?format=json`, owlBotConfig)
+    //console.log('value is, ', value);
 
   }
 
@@ -90,9 +143,8 @@ class AudioRecognition extends Component{
   }
 
   render() {
-    this.counter++;
 
-    const { transcript , stopListening, browserSupportsSpeechRecognition, listening } = this.props;
+    const { transcript, stopListening, browserSupportsSpeechRecognition, listening } = this.props;
 
     console.log('transcript ', transcript);
     let transcriptArr = transcript.split(' ');
@@ -100,6 +152,7 @@ class AudioRecognition extends Component{
 
     for (let word of transcriptArr){
       if (listening === true){
+        console.log('prevWord', prevWord);
         if (this.feelings.includes(word)){
           this.response = this.props.motivationalWords[word].response;
           this.videoUrl = this.props.motivationalWords[word].videoUrl;
@@ -134,6 +187,17 @@ class AudioRecognition extends Component{
           window.speechSynthesis.speak(new SpeechSynthesisUtterance('Hello Steven'));
           stopListening();
           this.found = true;
+        } else if (prevWord === 'define' || prevWord === 'Define'){
+          console.log('in right if statement');
+          this.definitionHandler(word);
+          //stopListening();
+
+          // console.log('in definition if block');
+          // this.typeOfResponse = 'definition';
+
+          stopListening();
+
+          // this.found = true;
         }
       }
 
@@ -182,7 +246,10 @@ const mapState = ({ motivationalWords }) => {
 const mapDispatch = dispatch => {
   return {
     loadPhraseData () {
-      dispatch(fetchPhrases(dispatch))
+      dispatch(fetchPhrases());
+    },
+    loadDefinition(word){
+      dispatch(fetchDefinition(word));
     }
   }
 }

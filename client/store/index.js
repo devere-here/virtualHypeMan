@@ -16,3 +16,5 @@ const store = createStore(reducer, middleware)
 export default store
 //export * from './user'
 export * from './motivationalWords'
+export * from './dictionary'
+

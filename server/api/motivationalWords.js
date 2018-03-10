@@ -1,6 +1,8 @@
 const router = require('express').Router();
 const asyncHandler = require('express-async-handler');
 const { MotivationalWords } = require('../db/models');
+const axios = require('axios');
+
 
 module.exports = router;
 
