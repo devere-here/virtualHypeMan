@@ -2,12 +2,10 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import {connect} from 'react-redux'
 import SpeechRecognition from 'react-speech-recognition'
-import { fetchPhrases, fetchDefinition } from '../store'
+import { fetchPhrases, fetchDefinition, fetchTasks, removeTask, addTask } from '../store'
 import axios from 'axios';
 //import Gif from 'react-gif';
 var GifPlayer = require('react-gif-player');
-
-
 
 const propTypes = {
   transcript: PropTypes.string,
@@ -21,7 +19,9 @@ class AudioRecognition extends Component{
 
     this.getGeoLocation();
     this.props.loadPhraseData();
+    this.props.loadToDoList();
     this.feelings = ['happy', 'sad', 'tired', 'nervous', 'angry'];
+    this.mathOperations = ['+', '-', '*', '/', 'plus', 'minus', 'times', 'multiplied', 'divided'];
     this.clickHandler = this.clickHandler.bind(this);
     this.response = '';
     this.videoUrl = '';
@@ -33,6 +33,8 @@ class AudioRecognition extends Component{
     this.emotionHandler = this.emotionHandler.bind(this);
     this.weatherHandler = this.weatherHandler.bind(this);
     this.complimentHandler = this.complimentHandler.bind(this);
+    this.mathHandler = this.mathHandler.bind(this);
+    this.toDoListHandler = this.toDoListHandler.bind(this);
     this.dictionaryUrl = '';
     this.finishedAsync = false;
 
@@ -40,11 +42,7 @@ class AudioRecognition extends Component{
 
   componentWillReceiveProps(nextProps){
 
-    console.log('props.definition', this.props);
-    console.log('nextProps.definition', nextProps);
-    console.log('Object.keys(nextProps).length', Object.keys(nextProps).length);
-    if (Object.keys(nextProps).length !== 0 && this.props.definition !== nextProps.definition){
-      console.log(' in componentWillReceiveProps if statement');
+    if ((Object.keys(nextProps).length !== 0 && this.props.definition !== nextProps.definition) || this.props.toDoList.length !== nextProps.toDoList.length){
       this.finishedAsync = true;
     }
 
@@ -59,7 +57,6 @@ class AudioRecognition extends Component{
 
       weatherUrl = await navigator.geolocation.getCurrentPosition((position) => {
         weatherUrl = `https://fcc-weather-api.glitch.me/api/current?lat=${position.coords.latitude}&lon=${position.coords.longitude}`;
-        console.log('position, ', position.coords.latitude, position.coords.longitude);
         axios.get(weatherUrl)
         .then((weatherData) => {
           this.weather = weatherData;
@@ -77,6 +74,18 @@ class AudioRecognition extends Component{
       case 'weather':
           return (<div><h1>{this.response}</h1>
             <img width="560" height="315" src={this.props.weatherImages[this.weather.data.weather[0].main]} /></div>);
+      case 'math':
+            return (
+              <h3>The answer is {this.response}</h3>
+            )
+      case 'list':
+      return (
+        <div>
+          {console.log('this should be an array', this.response)}
+            <h3>The answer is {this.response}</h3>
+
+        </div>
+      )
       case 'definition':
       this.transcript = '';
             return (
@@ -170,41 +179,162 @@ class AudioRecognition extends Component{
 
   }
 
+  mathHandler(firstNumber, secondNumber, operation){
+
+
+    let answer;
+    if (operation === '+' || operation === 'plus'){
+      answer = firstNumber + secondNumber;
+    } else if (operation === '-' || operation === 'minus'){
+      answer = firstNumber - secondNumber;
+    } else if (operation === '*' || operation === 'times' || operation === 'multiplied'){
+      answer = firstNumber * secondNumber;
+    } else if (operation === '/' || operation === 'divided'){
+      answer = firstNumber / secondNumber;
+    }
+
+    window.speechSynthesis.speak(new SpeechSynthesisUtterance(answer));
+    this.props.stopListening();
+    this.found = true;
+    this.response = answer;
+    this.typeOfResponse = 'math';
+
+  }
+
+  toDoListHandler(arr, index){
+    let modifierIndex;
+    let endingIndex;
+    if (arr.includes('add')){
+      modifierIndex = arr.indexOf('add');
+      endingIndex = arr[index - 1] === 'to-do' ? index - 3 : index - 4;
+
+      let newTask = arr.slice(modifierIndex + 1, endingIndex);
+
+      console.log('newTask is', newTask.join(' '));
+
+      //dispatch some add a task method
+      this.props.addToToDoList(newTask.join(' '));
+
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(newTask.join(' ')));
+      this.props.stopListening();
+      this.found = true;
+      this.response = newTask.join(' ');
+      this.typeOfResponse = 'list';
+      this.listening = 'false';
+
+
+
+    } else if (arr.includes('remove') || arr.includes('delete')){
+
+      modifierIndex = arr.indexOf('remove');
+      if (modifierIndex === -1){
+        modifierIndex = arr.includes('delete');
+      }
+      endingIndex = arr[index - 1] === 'to-do' ? index - 3 : index - 4;
+
+      let removedTask = arr.slice(modifierIndex + 1, endingIndex);
+
+      console.log('removeTask is', removedTask.join(' '));
+
+      //dispatch some remove a task method
+      this.props.removeFromToDoList(removedTask.join(' ').toLowerCase());
+
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(removedTask.join(' ')));
+      this.props.stopListening();
+      this.found = true;
+      this.response = removedTask.join(' ');
+      this.typeOfResponse = 'list';
+      this.listening = 'false';
+
+
+
+
+    } else {
+
+      let list = this.props.toDoList.map((task) => task.task);
+      list = list.join(', ');
+
+      if (this.props.toDoList.length > 1){
+        let lastIndex = list.lastIndexOf(',');
+        list = list.substring(0, lastIndex) + ' and ' + list.substring(lastIndex + 1);
+      }
+
+      list = `There are ${this.props.toDoList.length} things on your to do list. You should ${list}`;
+
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(list));
+      this.props.stopListening();
+      this.found = true;
+      this.response = list;
+      this.typeOfResponse = 'list';
+      this.listening = 'false';
+
+
+    }
+
+  }
+
   render() {
 
     const { transcript, stopListening, browserSupportsSpeechRecognition, listening } = this.props;
 
-    console.log('transcript ', transcript);
     let transcriptArr = transcript.split(' ');
     let prevWord = '';
     let prevPrevWord = '';
 
-    for (let word of transcriptArr){
-      if (listening === true){
-        console.log('prevWord', prevWord);
-        if (this.feelings.includes(word)){
-          this.emotionHandler(word);
-          break;
-        } else if (word === 'temperature' || word === 'weather'){
-          this.weatherHandler(this.weather);
-          break;
-        } else if (word === 'great' && prevWord === 'you\'re'){
+    if (listening === true){
+      for (let word of transcriptArr){
+        if (word === 'please'){
+          let spokenFeeling = this.feelings.find((feeling) => {
+            return transcriptArr.includes(feeling);
+          });
+          if (spokenFeeling) {
+            this.emotionHandler(spokenFeeling);
+            break;
+          }
 
-          this.complimentHandler();
-          break;
+          let spokenDefinition = transcriptArr.find((word) => {
+            return word === 'define' || word === 'definition'
+          });
+          if (spokenDefinition){
+            let word, index;
+            index = spokenDefinition === 'define'
+              ? transcriptArr.indexOf('define') + 1
+              : transcriptArr.indexOf('definition') + 2
+            this.definitionHandler(transcriptArr[index]);
+            break;
+          }
 
-        } else if (word === 'hello'){
-          window.speechSynthesis.speak(new SpeechSynthesisUtterance('Hello Steven'));
-          this.props.stopListening();
-          this.found = true;
-        } else if ((prevPrevWord === 'define' || prevPrevWord === 'Define') && word === 'please'){
-          this.definitionHandler(prevWord);
-          //stopListening();
+          let spokenOperation = this.mathOperations.find((operation) => {
+            return transcriptArr.includes(operation);
+          });
+
+          if (spokenOperation){
+            let index = transcriptArr.indexOf(spokenOperation);
+            let secondIndex = spokenOperation === 'divided' || spokenOperation === 'multiplied' ? index + 2 : index + 1;
+            this.mathHandler(transcriptArr[index - 1], transcriptArr[secondIndex], spokenOperation);
+          }
+
+          let spokenWeather = transcriptArr.find((word) => {
+            return word === 'weather' || word === 'temperature'
+          });
+
+          if (spokenWeather){
+            this.weatherHandler(this.weather);
+            break;
+          }
+
+          if (transcriptArr.includes('list')){
+            let index = transcriptArr.indexOf('list');
+            if ((transcriptArr[index - 2] === 'to' && transcriptArr[index - 1] === 'do') || transcriptArr[index - 1] === 'to-do'){
+              this.toDoListHandler(transcriptArr, index);
+
+            }
+          }
+
         }
+
       }
 
-      prevPrevWord = prevWord;
-      prevWord = word;
     }
 
     if (!browserSupportsSpeechRecognition) {
@@ -213,7 +343,10 @@ class AudioRecognition extends Component{
 
     return (
       <div>
-      <GifPlayer gif={'https://drive.google.com/uc?export=download&id=1jwO0PLd1G4jNBQcbtsW3zDHsc1_K9Kf-'} still={'https://vignette.wikia.nocookie.net/uncyclopedia/images/6/6e/Blah_Sheep.jpg/revision/latest?cb=20051125180452'} />
+
+      <GifPlayer gif={'https://drive.google.com/uc?export=download&id=1jwO0PLd1G4jNBQcbtsW3zDHsc1_K9Kf-'} still={'https://drive.google.com/uc?export=download&id=1zinfIIFvIwHsd6WiuG0kWBc0o_yelvyH'} />
+      <GifPlayer gif={'https://drive.google.com/uc?export=download&id=10oYkrHB_q2plQJxzELy8EyKsheHEgEip'} still={'https://drive.google.com/uc?export=download&id=155VwgHXUupoZ24wwVfzqZs8TBz3b26oo'} />
+      <GifPlayer gif={'https://drive.google.com/uc?export=download&id=1G2eR26NW6DJGbUkAsSRsvafatiqzpKR1'} still={'https://drive.google.com/uc?export=download&id=1ksCp0s2T_NwAwR_28SbOoG1HT124JZVH'} />
         <button onClick={this.clickHandler}>{listening ? 'Stop' : 'Start'}</button>
         <span>{transcript}</span>
         { !this.found
@@ -233,10 +366,10 @@ AudioRecognition.propTypes = propTypes
  * CONTAINER
  */
 const mapState = (state) => {
-  console.log('state is', state);
   return {
     motivationalWords: state.motivationalWords,
     definition: state.dictionary,
+    toDoList: state.toDoList,
     weatherImages: {
       Clear: 'https://formingthethread.files.wordpress.com/2013/04/clearday.jpg',
       Clouds: 'https://vmcdn.ca/f/files/sudbury/140816_weather.jpg;w=630',
@@ -256,6 +389,15 @@ const mapDispatch = dispatch => {
     },
     loadDefinition(word){
       dispatch(fetchDefinition(word));
+    },
+    loadToDoList () {
+      dispatch(fetchTasks());
+    },
+    addToToDoList (task) {
+      dispatch(addTask(task));
+    },
+    removeFromToDoList (task) {
+      dispatch(removeTask(task));
     }
   }
 }
@@ -313,3 +455,36 @@ export default connect(mapState, mapDispatch)(SpeechRecognition(options)(AudioRe
 
 
          // <Gif src={'https://media3.giphy.com/media/xThta83zMLHGNtRZcs/200w.webp'} />
+
+
+
+
+
+        //  for (let word of transcriptArr){
+        //   if (listening === true){
+        //     console.log('prevWord', prevWord);
+        //     if (this.feelings.includes(word)){
+        //       this.emotionHandler(word);
+        //       break;
+        //     } else if (word === 'temperature' || word === 'weather'){
+        //       this.weatherHandler(this.weather);
+        //       break;
+        //     } else if (word === 'great' && prevWord === 'you\'re'){
+
+        //       this.complimentHandler();
+        //       break;
+
+        //     } else if (word === 'hello'){
+        //       window.speechSynthesis.speak(new SpeechSynthesisUtterance('Hello Steven'));
+        //       this.props.stopListening();
+        //       this.found = true;
+        //     } else if ((prevPrevWord === 'define' || prevPrevWord === 'Define') && word === 'please'){
+        //       this.definitionHandler(prevWord);
+        //       //stopListening();
+        //     }
+        //   }
+
+        //   prevPrevWord = prevWord;
+        //   prevWord = word;
+        // }
+
