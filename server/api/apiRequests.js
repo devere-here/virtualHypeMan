@@ -9,6 +9,8 @@ module.exports = router;
 router.post('/', asyncHandler(async (req, res, next) => {
 
   //get definition
+  req.body.word = req.body.word.toLowerCase();
+
   let value = await axios.get(`https://owlbot.info/api/v2/dictionary/${req.body.word}/?format=json`);
   //res.json(value.data);
 

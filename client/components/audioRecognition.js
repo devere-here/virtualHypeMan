@@ -3,9 +3,10 @@ import PropTypes from 'prop-types'
 import {connect} from 'react-redux'
 import SpeechRecognition from 'react-speech-recognition'
 import { fetchPhrases, fetchDefinition } from '../store'
-import Audio from 'react-audioplayer';
-import { Player } from 'video-react';
 import axios from 'axios';
+//import Gif from 'react-gif';
+var GifPlayer = require('react-gif-player');
+
 
 
 const propTypes = {
@@ -13,11 +14,6 @@ const propTypes = {
   resetTranscript: PropTypes.func,
   browserSupportsSpeechRecognition: PropTypes.bool
 }
-
-const owlBotConfig = {
-  headers: {'Access-Control-Allow-Origin': '*'},
-}
-
 
 class AudioRecognition extends Component{
   constructor(props){
@@ -34,6 +30,9 @@ class AudioRecognition extends Component{
     this.typeOfResponse = '';
     this.found = false;
     this.definitionHandler = this.definitionHandler.bind(this);
+    this.emotionHandler = this.emotionHandler.bind(this);
+    this.weatherHandler = this.weatherHandler.bind(this);
+    this.complimentHandler = this.complimentHandler.bind(this);
     this.dictionaryUrl = '';
     this.finishedAsync = false;
 
@@ -56,8 +55,11 @@ class AudioRecognition extends Component{
     let weatherUrl;
     if (navigator.geolocation){
 
+
+
       weatherUrl = await navigator.geolocation.getCurrentPosition((position) => {
         weatherUrl = `https://fcc-weather-api.glitch.me/api/current?lat=${position.coords.latitude}&lon=${position.coords.longitude}`;
+        console.log('position, ', position.coords.latitude, position.coords.longitude);
         axios.get(weatherUrl)
         .then((weatherData) => {
           this.weather = weatherData;
@@ -115,8 +117,56 @@ class AudioRecognition extends Component{
   async definitionHandler(word){
     this.typeOfResponse = 'definition';
     this.found = true;
+    this.props.stopListening();
+
 
     await this.props.loadDefinition(word)
+
+  }
+
+  emotionHandler(word){
+
+    this.response = this.props.motivationalWords[word].response;
+    this.videoUrl = this.props.motivationalWords[word].videoUrl;
+    window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
+    this.props.stopListening();
+    this.found = true;
+    this.typeOfResponse = 'feeling';
+
+  }
+
+  weatherHandler(weather){
+
+    if (weather){
+
+      let fahrenheit = weather.data.main.temp * 1.8 + 32;
+      let percipitation = weather.data.weather[0].main;
+      if (percipitation === 'Clear') percipitation = 'Clear Skies';
+      fahrenheit = Math.round(fahrenheit).toString();
+      this.response = `It is ${fahrenheit} degrees fahrenheit outside with ${percipitation}`;
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
+      this.props.stopListening();
+      this.typeOfResponse = 'weather';
+
+    } else {
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance('The temperature and weather is currently unavailiable'));
+    }
+
+    this.found = true;
+
+  }
+
+  greetingHandler(){
+    window.speechSynthesis.speak(new SpeechSynthesisUtterance('Hello Steven'));
+    this.props.stopListening();
+    this.found = true;
+
+  }
+
+  complimentHandler(){
+    window.speechSynthesis.speak(new SpeechSynthesisUtterance('Thank You'));
+    this.props.stopListening();
+    this.found = true;
 
   }
 
@@ -133,43 +183,23 @@ class AudioRecognition extends Component{
       if (listening === true){
         console.log('prevWord', prevWord);
         if (this.feelings.includes(word)){
-          this.response = this.props.motivationalWords[word].response;
-          this.videoUrl = this.props.motivationalWords[word].videoUrl;
-          window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
-          stopListening();
-          this.found = true;
-          this.typeOfResponse = 'feeling';
+          this.emotionHandler(word);
           break;
         } else if (word === 'temperature' || word === 'weather'){
-          if (this.weather){
-            let fahrenheit = this.weather.data.main.temp * 1.8 + 32;
-            let percipitation = this.weather.data.weather[0].main;
-            if (percipitation === 'Clear') percipitation = 'Clear Skies';
-            fahrenheit = Math.round(fahrenheit).toString();
-            this.response = `It is ${fahrenheit} degrees fahrenheit outside with ${percipitation}`;
-            window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
-            stopListening();
-            this.typeOfResponse = 'weather';
-          } else {
-            window.speechSynthesis.speak(new SpeechSynthesisUtterance('The temperature and weather is currently unavailiable'));
-          }
-          this.found = true;
-
+          this.weatherHandler(this.weather);
+          break;
         } else if (word === 'great' && prevWord === 'you\'re'){
 
-          window.speechSynthesis.speak(new SpeechSynthesisUtterance('Thank You'));
-          stopListening();
-          this.found = true;
+          this.complimentHandler();
           break;
 
         } else if (word === 'hello'){
           window.speechSynthesis.speak(new SpeechSynthesisUtterance('Hello Steven'));
-          stopListening();
+          this.props.stopListening();
           this.found = true;
         } else if ((prevPrevWord === 'define' || prevPrevWord === 'Define') && word === 'please'){
           this.definitionHandler(prevWord);
-          stopListening();
-
+          //stopListening();
         }
       }
 
@@ -183,6 +213,7 @@ class AudioRecognition extends Component{
 
     return (
       <div>
+      <GifPlayer gif={'https://drive.google.com/uc?export=download&id=1jwO0PLd1G4jNBQcbtsW3zDHsc1_K9Kf-'} still={'https://vignette.wikia.nocookie.net/uncyclopedia/images/6/6e/Blah_Sheep.jpg/revision/latest?cb=20051125180452'} />
         <button onClick={this.clickHandler}>{listening ? 'Stop' : 'Start'}</button>
         <span>{transcript}</span>
         { !this.found
@@ -261,3 +292,24 @@ export default connect(mapState, mapDispatch)(SpeechRecognition(options)(AudioRe
     //   window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
     //   console.log('about the change finishedAsync');
     //   this.props.finishedAsync = true;
+
+   // this.response = this.props.motivationalWords[word].response;
+          // this.videoUrl = this.props.motivationalWords[word].videoUrl;
+          // window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
+          // stopListening();
+          // this.found = true;
+          // this.typeOfResponse = 'feeling';
+
+
+
+          // let fahrenheit = this.weather.data.main.temp * 1.8 + 32;
+          //   let percipitation = this.weather.data.weather[0].main;
+          //   if (percipitation === 'Clear') percipitation = 'Clear Skies';
+          //   fahrenheit = Math.round(fahrenheit).toString();
+          //   this.response = `It is ${fahrenheit} degrees fahrenheit outside with ${percipitation}`;
+          //   window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
+          //   stopListening();
+          //   this.typeOfResponse = 'weather';
+
+
+         // <Gif src={'https://media3.giphy.com/media/xThta83zMLHGNtRZcs/200w.webp'} />
