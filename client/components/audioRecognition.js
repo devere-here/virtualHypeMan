@@ -34,6 +34,7 @@ class AudioRecognition extends Component{
     this.weatherHandler = this.weatherHandler.bind(this);
     this.complimentHandler = this.complimentHandler.bind(this);
     this.mathHandler = this.mathHandler.bind(this);
+    this.toDoListHandler = this.toDoListHandler.bind(this);
     this.dictionaryUrl = '';
     this.finishedAsync = false;
 
@@ -82,6 +83,10 @@ class AudioRecognition extends Component{
             return (
               <h3>The answer is {this.response}</h3>
             )
+      case 'list':
+      return (
+        <h3>The answer is {this.response}</h3>
+      )
       case 'definition':
       this.transcript = '';
             return (
@@ -199,7 +204,51 @@ class AudioRecognition extends Component{
 
   }
 
-  toDoListHandler(){
+  toDoListHandler(arr, index){
+    let modifierIndex;
+    let endingIndex;
+    if (arr.includes('add')){
+      console.log('should add');
+      modifierIndex = arr.indexOf('add');
+      endingIndex = arr[index - 1] === 'to-do' ? index - 3 : index - 4;
+
+      let newTask = arr.slice(modifierIndex + 1, endingIndex);
+
+      console.log('newTask is', newTask.join(' '));
+
+      //dispatch some add a task method
+
+    } else if (arr.includes('remove')){
+      console.log('should remove');
+      modifierIndex = arr.indexOf('remove');
+      endingIndex = arr[index - 1] === 'to-do' ? index - 3 : index - 4;
+
+      let reovedTask = arr.slice(modifierIndex + 1, endingIndex);
+
+      console.log('removeTask is', reovedTask.join(' '));
+
+      //dispatch some remove a task method
+
+    } else {
+
+      let list = this.props.toDoList.map((task) => task.task);
+      list = list.join(', ');
+
+      if (this.props.toDoList.length > 1){
+        let lastIndex = list.lastIndexOf(',');
+        list = list.substring(0, lastIndex) + ' and ' + list.substring(lastIndex + 1);
+      }
+
+      list = `There are ${this.props.toDoList.length} things on your to do list. You should ${list}`;
+
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(list));
+      this.props.stopListening();
+      this.found = true;
+      this.response = list;
+      this.typeOfResponse = 'list';
+
+
+    }
 
   }
 
@@ -252,6 +301,17 @@ class AudioRecognition extends Component{
           if (spokenWeather){
             this.weatherHandler(this.weather);
             break;
+          }
+
+          console.log('transcriptArr', transcriptArr);
+          if (transcriptArr.includes('list')){
+            console.log('in first if');
+            let index = transcriptArr.indexOf('list');
+            if ((transcriptArr[index - 2] === 'to' && transcriptArr[index - 1] === 'do') || transcriptArr[index - 1] === 'to-do'){
+              console.log('in second if');
+              this.toDoListHandler(transcriptArr, index);
+
+            }
           }
 
         }
