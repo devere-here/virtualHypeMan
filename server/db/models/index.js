@@ -1,5 +1,7 @@
 const User = require('./user');
 const MotivationalWords = require('./motivationalWords');
+const ToDo = require('./todo');
+
 
 
 /**
@@ -17,5 +19,6 @@ const MotivationalWords = require('./motivationalWords');
  */
 module.exports = {
   User,
-  MotivationalWords
+  MotivationalWords,
+  ToDo
 }

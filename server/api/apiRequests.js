@@ -6,6 +6,7 @@ const ImageApi = require('gettyimages-api');
 
 module.exports = router;
 
+
 router.post('/', asyncHandler(async (req, res, next) => {
 
   //get definition
