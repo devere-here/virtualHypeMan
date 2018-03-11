@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import {connect} from 'react-redux'
 import SpeechRecognition from 'react-speech-recognition'
-import { fetchPhrases, fetchDefinition, fetchTasks } from '../store'
+import { fetchPhrases, fetchDefinition, fetchTasks, removeTask, addTask } from '../store'
 import axios from 'axios';
 //import Gif from 'react-gif';
 var GifPlayer = require('react-gif-player');
@@ -326,7 +326,10 @@ class AudioRecognition extends Component{
 
     return (
       <div>
-      <GifPlayer gif={'https://drive.google.com/uc?export=download&id=1jwO0PLd1G4jNBQcbtsW3zDHsc1_K9Kf-'} still={'https://vignette.wikia.nocookie.net/uncyclopedia/images/6/6e/Blah_Sheep.jpg/revision/latest?cb=20051125180452'} />
+
+      <GifPlayer gif={'https://drive.google.com/uc?export=download&id=1jwO0PLd1G4jNBQcbtsW3zDHsc1_K9Kf-'} still={'https://drive.google.com/uc?export=download&id=1zinfIIFvIwHsd6WiuG0kWBc0o_yelvyH'} />
+      <GifPlayer gif={'https://drive.google.com/uc?export=download&id=10oYkrHB_q2plQJxzELy8EyKsheHEgEip'} still={'https://drive.google.com/uc?export=download&id=155VwgHXUupoZ24wwVfzqZs8TBz3b26oo'} />
+      <GifPlayer gif={'https://drive.google.com/uc?export=download&id=1G2eR26NW6DJGbUkAsSRsvafatiqzpKR1'} still={'https://drive.google.com/uc?export=download&id=1ksCp0s2T_NwAwR_28SbOoG1HT124JZVH'} />
         <button onClick={this.clickHandler}>{listening ? 'Stop' : 'Start'}</button>
         <span>{transcript}</span>
         { !this.found

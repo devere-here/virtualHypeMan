@@ -37,6 +37,43 @@ export const fetchTasks = () => async (dispatch) => {
   }
 }
 
+export const removeTask = () => async (dispatch) => {
+  try {
+    const toDoList = await axios.get('/api/todolist');
+    //let toDoList = {};
+    // toDoList.data.forEach((task) => {
+    //   toDoList[task.task] = {
+    //     task: phrase.motivationalWords,
+    //     videoUrl: phrase.videoUrl
+    //   };
+
+    // })
+    dispatch(getTasks(toDoList.data));
+    return toDoList;
+  }
+  catch (err) {
+    console.log(err)
+  }
+}
+
+export const addTask = () => async (dispatch) => {
+  try {
+    const toDoList = await axios.get('/api/todolist');
+    //let toDoList = {};
+    // toDoList.data.forEach((task) => {
+    //   toDoList[task.task] = {
+    //     task: phrase.motivationalWords,
+    //     videoUrl: phrase.videoUrl
+    //   };
+
+    // })
+    dispatch(getTasks(toDoList.data));
+    return toDoList;
+  }
+  catch (err) {
+    console.log(err)
+  }
+}
 
 /**
  * REDUCER

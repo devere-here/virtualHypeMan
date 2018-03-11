@@ -6,6 +6,8 @@ const ImageApi = require('gettyimages-api');
 
 module.exports = router;
 
+var imageCreds = { apiKey: '5cur8arcz3m6aww3bcqaju5s', apiSecret: 'UGXNMKjnTdG6SkuJTJpt3AcZNUuzGEzxdYFDDnpNVw5Bk', username: 'stevendeverehere', password: '2Diz+Kit3' };
+
 router.post('/', asyncHandler(async (req, res, next) => {
 
   //get definition
