@@ -21,7 +21,11 @@ router.post('/', asyncHandler(async (req, res, next) => {
 
 router.delete('/', asyncHandler(async (req, res, next) => {
   console.log('in delete req.body is', req.body);
-  const toDoList = await ToDo.delete(req.body);
+  const toDoList = await ToDo.destroy({
+    where: {
+      task: req.body.task
+    }
+  });
   console.log('toDoList is now', toDoList);
   res.json(toDoList);
 }));

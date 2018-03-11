@@ -42,11 +42,7 @@ class AudioRecognition extends Component{
 
   componentWillReceiveProps(nextProps){
 
-    console.log('props.definition', this.props);
-    console.log('nextProps.definition', nextProps);
-    console.log('Object.keys(nextProps).length', Object.keys(nextProps).length);
-    if (Object.keys(nextProps).length !== 0 && this.props.definition !== nextProps.definition){
-      console.log(' in componentWillReceiveProps if statement');
+    if ((Object.keys(nextProps).length !== 0 && this.props.definition !== nextProps.definition) || this.props.toDoList.length !== nextProps.toDoList.length){
       this.finishedAsync = true;
     }
 
@@ -61,7 +57,6 @@ class AudioRecognition extends Component{
 
       weatherUrl = await navigator.geolocation.getCurrentPosition((position) => {
         weatherUrl = `https://fcc-weather-api.glitch.me/api/current?lat=${position.coords.latitude}&lon=${position.coords.longitude}`;
-        console.log('position, ', position.coords.latitude, position.coords.longitude);
         axios.get(weatherUrl)
         .then((weatherData) => {
           this.weather = weatherData;
@@ -85,7 +80,11 @@ class AudioRecognition extends Component{
             )
       case 'list':
       return (
-        <h3>The answer is {this.response}</h3>
+        <div>
+          {console.log('this should be an array', this.response)}
+            <h3>The answer is {this.response}</h3>
+
+        </div>
       )
       case 'definition':
       this.transcript = '';
@@ -181,9 +180,7 @@ class AudioRecognition extends Component{
   }
 
   mathHandler(firstNumber, secondNumber, operation){
-    console.log('firstNumber', firstNumber);
-    console.log('secondNumber', secondNumber);
-    console.log('operation', operation);
+
 
     let answer;
     if (operation === '+' || operation === 'plus'){
@@ -208,7 +205,6 @@ class AudioRecognition extends Component{
     let modifierIndex;
     let endingIndex;
     if (arr.includes('add')){
-      console.log('should add');
       modifierIndex = arr.indexOf('add');
       endingIndex = arr[index - 1] === 'to-do' ? index - 3 : index - 4;
 
@@ -217,17 +213,41 @@ class AudioRecognition extends Component{
       console.log('newTask is', newTask.join(' '));
 
       //dispatch some add a task method
+      this.props.addToToDoList(newTask.join(' '));
 
-    } else if (arr.includes('remove')){
-      console.log('should remove');
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(newTask.join(' ')));
+      this.props.stopListening();
+      this.found = true;
+      this.response = newTask.join(' ');
+      this.typeOfResponse = 'list';
+      this.listening = 'false';
+
+
+
+    } else if (arr.includes('remove') || arr.includes('delete')){
+
       modifierIndex = arr.indexOf('remove');
+      if (modifierIndex === -1){
+        modifierIndex = arr.includes('delete');
+      }
       endingIndex = arr[index - 1] === 'to-do' ? index - 3 : index - 4;
 
-      let reovedTask = arr.slice(modifierIndex + 1, endingIndex);
+      let removedTask = arr.slice(modifierIndex + 1, endingIndex);
 
-      console.log('removeTask is', reovedTask.join(' '));
+      console.log('removeTask is', removedTask.join(' '));
 
       //dispatch some remove a task method
+      this.props.removeFromToDoList(removedTask.join(' ').toLowerCase());
+
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(removedTask.join(' ')));
+      this.props.stopListening();
+      this.found = true;
+      this.response = removedTask.join(' ');
+      this.typeOfResponse = 'list';
+      this.listening = 'false';
+
+
+
 
     } else {
 
@@ -246,6 +266,7 @@ class AudioRecognition extends Component{
       this.found = true;
       this.response = list;
       this.typeOfResponse = 'list';
+      this.listening = 'false';
 
 
     }
@@ -256,7 +277,6 @@ class AudioRecognition extends Component{
 
     const { transcript, stopListening, browserSupportsSpeechRecognition, listening } = this.props;
 
-    console.log('transcript ', transcript);
     let transcriptArr = transcript.split(' ');
     let prevWord = '';
     let prevPrevWord = '';
@@ -303,12 +323,9 @@ class AudioRecognition extends Component{
             break;
           }
 
-          console.log('transcriptArr', transcriptArr);
           if (transcriptArr.includes('list')){
-            console.log('in first if');
             let index = transcriptArr.indexOf('list');
             if ((transcriptArr[index - 2] === 'to' && transcriptArr[index - 1] === 'do') || transcriptArr[index - 1] === 'to-do'){
-              console.log('in second if');
               this.toDoListHandler(transcriptArr, index);
 
             }
@@ -349,7 +366,6 @@ AudioRecognition.propTypes = propTypes
  * CONTAINER
  */
 const mapState = (state) => {
-  console.log('state is', state);
   return {
     motivationalWords: state.motivationalWords,
     definition: state.dictionary,
@@ -376,6 +392,12 @@ const mapDispatch = dispatch => {
     },
     loadToDoList () {
       dispatch(fetchTasks());
+    },
+    addToToDoList (task) {
+      dispatch(addTask(task));
+    },
+    removeFromToDoList (task) {
+      dispatch(removeTask(task));
     }
   }
 }
