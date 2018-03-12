@@ -7,7 +7,7 @@ import {logout} from '../store'
 const Home = () => (
   <div id="home">
     <div id="homeWelcome">
-      <h1>Welcome Friend</h1>
+      <h1>Emotional Support Dinosaurs</h1>
       <Link to="/about" className="homeButton">About</Link>
       <Link to="/choose" className="homeButton">Choose Your Dinosaur</Link>
     </div>
