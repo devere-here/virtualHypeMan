@@ -6,4 +6,12 @@
 export {default as HypeMan} from './hypeMan'
 export {default as AudioRecognition} from './audioRecognition'
 export {default as UserHome} from './user-home'
+export {default as Home} from './home'
+export {default as Choose} from './choose'
+export {default as About} from './about'
+export {default as Navbar} from './navbar'
+
+
+
+
 export {Login, Signup} from './auth-form'

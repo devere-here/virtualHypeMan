@@ -4,14 +4,7 @@ import {connect} from 'react-redux'
 import SpeechRecognition from 'react-speech-recognition'
 import { fetchPhrases, fetchDefinition, fetchTasks, removeTask, addTask } from '../store'
 import axios from 'axios';
-//import Gif from 'react-gif';
 var GifPlayer = require('react-gif-player');
-
-const propTypes = {
-  transcript: PropTypes.string,
-  resetTranscript: PropTypes.func,
-  browserSupportsSpeechRecognition: PropTypes.bool
-}
 
 class AudioRecognition extends Component{
   constructor(props){
@@ -38,6 +31,7 @@ class AudioRecognition extends Component{
     this.dictionaryUrl = '';
     this.finishedAsync = false;
 
+
   }
 
   componentWillReceiveProps(nextProps){
@@ -48,12 +42,24 @@ class AudioRecognition extends Component{
 
   }
 
+  componentDidMount(){
+    console.log('this.dinosaur is', this.props.dinosaur);
+    if (this.props.dinosaur === 'stegosaurus'){
+      this.dinosaurGifUrl = 'https://drive.google.com/uc?export=download&id=1jwO0PLd1G4jNBQcbtsW3zDHsc1_K9Kf-';
+    } else if (this.props.dinosaur === 'tyrannosaurus'){
+      this.dinosaurGifUrl = 'https://drive.google.com/uc?export=download&id=10oYkrHB_q2plQJxzELy8EyKsheHEgEip';
+
+    } else {
+      this.dinosaurGifUrl = 'https://drive.google.com/uc?export=download&id=1G2eR26NW6DJGbUkAsSRsvafatiqzpKR1';
+
+    }
+
+  }
+
 
  async getGeoLocation(){
     let weatherUrl;
     if (navigator.geolocation){
-
-
 
       weatherUrl = await navigator.geolocation.getCurrentPosition((position) => {
         weatherUrl = `https://fcc-weather-api.glitch.me/api/current?lat=${position.coords.latitude}&lon=${position.coords.longitude}`;
@@ -181,7 +187,6 @@ class AudioRecognition extends Component{
 
   mathHandler(firstNumber, secondNumber, operation){
 
-
     let answer;
     if (operation === '+' || operation === 'plus'){
       answer = firstNumber + secondNumber;
@@ -204,18 +209,18 @@ class AudioRecognition extends Component{
   toDoListHandler(arr, index){
     let modifierIndex;
     let endingIndex;
+
     if (arr.includes('add')){
       modifierIndex = arr.indexOf('add');
       endingIndex = arr[index - 1] === 'to-do' ? index - 3 : index - 4;
 
       let newTask = arr.slice(modifierIndex + 1, endingIndex);
 
-      console.log('newTask is', newTask.join(' '));
-
-      //dispatch some add a task method
       this.props.addToToDoList(newTask.join(' '));
 
-      window.speechSynthesis.speak(new SpeechSynthesisUtterance(newTask.join(' ')));
+      this.response = `You  have just added ${newTask.join(' ')} to your to-do list`;
+
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
       this.props.stopListening();
       this.found = true;
       this.response = newTask.join(' ');
@@ -231,22 +236,12 @@ class AudioRecognition extends Component{
         modifierIndex = arr.includes('delete');
       }
       endingIndex = arr[index - 1] === 'to-do' ? index - 3 : index - 4;
-
       let removedTask = arr.slice(modifierIndex + 1, endingIndex);
 
-      console.log('removeTask is', removedTask.join(' '));
 
-      //dispatch some remove a task method
       this.props.removeFromToDoList(removedTask.join(' ').toLowerCase());
-
-      window.speechSynthesis.speak(new SpeechSynthesisUtterance(removedTask.join(' ')));
-      this.props.stopListening();
-      this.found = true;
-      this.response = removedTask.join(' ');
-      this.typeOfResponse = 'list';
-      this.listening = 'false';
-
-
+      this.response = `You  have just removed ${removedTask.join(' ')} from your to-do list`;
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
 
 
     } else {
@@ -260,20 +255,20 @@ class AudioRecognition extends Component{
       }
 
       list = `There are ${this.props.toDoList.length} things on your to do list. You should ${list}`;
-
       window.speechSynthesis.speak(new SpeechSynthesisUtterance(list));
-      this.props.stopListening();
-      this.found = true;
       this.response = list;
-      this.typeOfResponse = 'list';
-      this.listening = 'false';
-
 
     }
+
+    this.props.stopListening();
+    this.found = true;
+    this.typeOfResponse = 'list';
+    this.listening = 'false';
 
   }
 
   render() {
+    console.log('dinosaur', this.props.dinosaur);
 
     const { transcript, stopListening, browserSupportsSpeechRecognition, listening } = this.props;
 
@@ -344,11 +339,10 @@ class AudioRecognition extends Component{
     return (
       <div>
 
-      <GifPlayer gif={'https://drive.google.com/uc?export=download&id=1jwO0PLd1G4jNBQcbtsW3zDHsc1_K9Kf-'} still={'https://drive.google.com/uc?export=download&id=1zinfIIFvIwHsd6WiuG0kWBc0o_yelvyH'} />
-      <GifPlayer gif={'https://drive.google.com/uc?export=download&id=10oYkrHB_q2plQJxzELy8EyKsheHEgEip'} still={'https://drive.google.com/uc?export=download&id=155VwgHXUupoZ24wwVfzqZs8TBz3b26oo'} />
-      <GifPlayer gif={'https://drive.google.com/uc?export=download&id=1G2eR26NW6DJGbUkAsSRsvafatiqzpKR1'} still={'https://drive.google.com/uc?export=download&id=1ksCp0s2T_NwAwR_28SbOoG1HT124JZVH'} />
+
         <button onClick={this.clickHandler}>{listening ? 'Stop' : 'Start'}</button>
         <span>{transcript}</span>
+        <GifPlayer gif={this.dinosaurGifUrl} autoplay />
         { !this.found
           ? null
           : (<div>{this.renderSwitch(this.typeOfResponse)}</div>)
@@ -359,17 +353,16 @@ class AudioRecognition extends Component{
 
 }
 
-
-AudioRecognition.propTypes = propTypes
-
 /**
  * CONTAINER
  */
 const mapState = (state) => {
+  console.log('in mapState state is ', state);
   return {
     motivationalWords: state.motivationalWords,
     definition: state.dictionary,
     toDoList: state.toDoList,
+    dinosaur: state.dinosaur,
     weatherImages: {
       Clear: 'https://formingthethread.files.wordpress.com/2013/04/clearday.jpg',
       Clouds: 'https://vmcdn.ca/f/files/sudbury/140816_weather.jpg;w=630',
@@ -407,84 +400,6 @@ const options = {
 }
 
 
+
 export default connect(mapState, mapDispatch)(SpeechRecognition(options)(AudioRecognition))
-
-
-// /**
-//  * CONTAINER
-//  */
-// const mapState = state => {
-//   return {
-//     isLoggedIn: !!state.user.id
-//   }
-// }
-
-
-// export default connect(mapState, mapDispatch)(Navbar)
-
-
-
-// console.log('about to change finishedAsync');
-    // this.finishedAsync = true;
-
-    // let value = await axios.post('api/apiRequests', {word});
-    //   console.log('returned this value', value);
-    //   this.response = `${word}, ${value.data[0].definition}`;
-    //   this.dictionaryUrl = value.data[0].image;
-    //   window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
-    //   console.log('about the change finishedAsync');
-    //   this.props.finishedAsync = true;
-
-   // this.response = this.props.motivationalWords[word].response;
-          // this.videoUrl = this.props.motivationalWords[word].videoUrl;
-          // window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
-          // stopListening();
-          // this.found = true;
-          // this.typeOfResponse = 'feeling';
-
-
-
-          // let fahrenheit = this.weather.data.main.temp * 1.8 + 32;
-          //   let percipitation = this.weather.data.weather[0].main;
-          //   if (percipitation === 'Clear') percipitation = 'Clear Skies';
-          //   fahrenheit = Math.round(fahrenheit).toString();
-          //   this.response = `It is ${fahrenheit} degrees fahrenheit outside with ${percipitation}`;
-          //   window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
-          //   stopListening();
-          //   this.typeOfResponse = 'weather';
-
-
-         // <Gif src={'https://media3.giphy.com/media/xThta83zMLHGNtRZcs/200w.webp'} />
-
-
-
-
-
-        //  for (let word of transcriptArr){
-        //   if (listening === true){
-        //     console.log('prevWord', prevWord);
-        //     if (this.feelings.includes(word)){
-        //       this.emotionHandler(word);
-        //       break;
-        //     } else if (word === 'temperature' || word === 'weather'){
-        //       this.weatherHandler(this.weather);
-        //       break;
-        //     } else if (word === 'great' && prevWord === 'you\'re'){
-
-        //       this.complimentHandler();
-        //       break;
-
-        //     } else if (word === 'hello'){
-        //       window.speechSynthesis.speak(new SpeechSynthesisUtterance('Hello Steven'));
-        //       this.props.stopListening();
-        //       this.found = true;
-        //     } else if ((prevPrevWord === 'define' || prevPrevWord === 'Define') && word === 'please'){
-        //       this.definitionHandler(prevWord);
-        //       //stopListening();
-        //     }
-        //   }
-
-        //   prevPrevWord = prevWord;
-        //   prevWord = word;
-        // }
 

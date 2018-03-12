@@ -19,3 +19,116 @@ form div {
   margin: 1em;
   display: inline-block;
 }
+
+
+/* Home Page */
+#home{
+  background-image: url('http://i.dailymail.co.uk/i/pix/2013/11/14/article-2507305-19690FD200000578-331_964x757.jpg');
+  background-size: cover;
+  height: 850px;
+
+}
+
+#homeWelcome{
+  background-color: #006400;
+  color: #FFFF99;
+  width: 28%;
+  height: 150px;
+  position: relative;
+  top: 20%;
+  left: 36%;
+  border-radius: 15px;
+  border: #FFFF99 4px solid;
+  text-align: center;
+  padding-top: 20px;
+  box-shadow: 4px 4px 4px black;
+}
+
+.homeButton{
+  background-color: #FFFF99;
+  color: #006400;
+  padding: 4px 12px;
+  border-radius: 3px;
+  margin: 6px;
+
+}
+
+
+/* About Page */
+#about{
+  display: flex;
+  margin: -8px;
+}
+
+#aboutTextPortion{
+  width: 50%;
+
+}
+
+#aboutPictureContainer{
+  width: 50%;
+  background-image: url('https://mymodernmet.com/wp/wp-content/uploads/archive/2SFp48FD9u2pBc-KxVIK_1082134992.jpeg');
+  height: 850px;
+  border-left: black solid 3px;
+}
+
+#aboutTextH1{
+  text-align: center;
+}
+
+#aboutTextH3{
+  margin: 25px;
+  line-height: 2.5;
+}
+
+#aboutPageButtonContainer{
+  text-align: center;
+  margin-top: 50px;
+}
+
+.aboutPageButton{
+  background-color: #006400;
+  color: #FFFF99;
+  padding: 6px 12px;
+  border-radius: 5px;
+  border: #FFFF99 2px solid;
+  box-shadow: 2px 2px black;
+
+}
+
+/* choose a dinosaur page */
+
+#choose{
+  background-image: url('https://upload.wikimedia.org/wikipedia/commons/f/fc/Dinosaur_footprint_%284056320716%29.jpg');
+  background-size: cover;
+  height: 900px;
+}
+
+
+#choosePanel{
+  background-color: #006400;
+  height: 400px;
+  width: 828px;
+  color: #FFFF99;
+  border: #FFFF99 3px solid;
+  border-radius: 10px;
+  margin: 0 auto 0 auto;
+  position: relative;
+  top: 5%;
+  text-align: center;
+}
+
+#choosePanelFlexContainer{
+  display: flex;
+  justify-content: space-between;
+}
+
+.choosePanelDinoContainer{
+  color: black;
+  background-color: white;
+  border: 3px black solid;
+  width: 200px;
+  margin: 10px 35px;
+  text-align: center;
+  border-radius: 10px;
+}

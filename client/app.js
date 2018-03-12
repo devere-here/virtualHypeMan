@@ -1,13 +1,13 @@
 import React from 'react'
 
-import {HypeMan, AudioRecognition} from './components'
+import {Navbar, Home} from './components'
 import Routes from './routes'
 
 
 const App = () => {
   return (
     <div>
-      <AudioRecognition />
+      <Routes />
     </div>
   )
 }

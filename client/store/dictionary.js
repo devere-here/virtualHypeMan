@@ -1,5 +1,4 @@
 import axios from 'axios'
-import history from '../history'
 
 /**
  * ACTION TYPES
@@ -27,8 +26,6 @@ export const fetchDefinition = (word) => async (dispatch) => {
       text: `${word}, ${value.data[0].definition}`,
       image: value.data[0].image
     }
-
-    console.log('this will be definition', obj);
 
     dispatch(getDefinition(obj));
 
