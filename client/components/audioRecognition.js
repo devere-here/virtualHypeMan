@@ -125,7 +125,6 @@ class AudioRecognition extends Component {
       default:
         return (<h1>Hello Steven</h1>)
     }
-
   }
 
 
@@ -137,8 +136,6 @@ class AudioRecognition extends Component {
     this.props.listening ? this.props.stopListening() : this.props.startListening();
     this.addedMedia = '';
     this.addedEmotion = '';
-
-
   }
 
   onThankYou() {
@@ -191,20 +188,6 @@ class AudioRecognition extends Component {
 
   }
 
-  // greetingHandler() {
-  //   window.speechSynthesis.speak(new SpeechSynthesisUtterance('Hello Steven'));
-  //   this.props.stopListening();
-  //   this.found = true;
-
-  // }
-
-  // complimentHandler() {
-  //   window.speechSynthesis.speak(new SpeechSynthesisUtterance('Thank You'));
-  //   this.props.stopListening();
-  //   this.found = true;
-
-  // }
-
   mathHandler(firstNumber, secondNumber, operation) {
 
     let answer;
@@ -243,7 +226,6 @@ class AudioRecognition extends Component {
       window.speechSynthesis.speak(new SpeechSynthesisUtterance(this.response));
       this.props.stopListening();
       this.found = true;
-      //this.response = newTask.join(' ');
       this.typeOfResponse = 'list';
       this.listening = 'false';
 
@@ -356,9 +338,6 @@ class AudioRecognition extends Component {
       return null
     }
 
-    //return (
-
-    console.log('this.typeOfResponse', this.typeOfResponse, 'this.addedEmotion', this.addedEmotion, 'this.typeOfEmotion', this.typeOfEmotion);
       return (
 
         <div id="audioPage">
@@ -386,22 +365,6 @@ class AudioRecognition extends Component {
         </div>
 
       )
-
-
-
-
-      // <div>
-
-
-      //   <button onClick={this.clickHandler}>{listening ? 'Stop' : 'Start'}</button>
-      //   <span>{transcript}</span>
-      //   <GifPlayer gif={this.dinosaurGifUrl} autoplay />
-      //   {!this.found
-      //     ? null
-      //     : (<div>{this.renderSwitch(this.typeOfResponse)}</div>)
-      //   }
-      // </div>
-    //)
   }
 
 }
@@ -453,23 +416,6 @@ const options = {
 }
 
 
-
 export default connect(mapState, mapDispatch)(SpeechRecognition(options)(AudioRecognition))
 
-
-// return (
-
-//   <div id="audioPage">
-//     <button id="audioPageButton" onClick={this.clickHandler}>{listening ? 'Stop' : 'Start'}</button>
-//     <div id="audioUserBubble">
-//       <h2>{transcript}</h2>
-//     </div>
-//     <div id="audioDinoBubble">
-//       <div><GifPlayer id="audioDinoPicture" gif={this.dinosaurGifUrl} />
-//       <h2 id="audioDinoH2">{response}</h2></div>
-//       <div className="responseImage">{addedMedia}</div>
-//     </div>
-//   </div>
-
-// )
 
